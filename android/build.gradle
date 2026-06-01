@@ -1,0 +1,37 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    // This forces the MAIN project to use the correct root build folder
+    rootProject.buildDir = '../build'
+}
+
+subprojects {
+    // THIS IS THE MISSING PIECE: 
+    // It forces every plugin to also use the root build folder
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+// Your Global Namespace Patch (Keep this exactly as it was)
+subprojects {
+    if (project.hasProperty('android')) {
+        project.android {
+            if (namespace == null) {
+                if (project.name == 'flutter_inappwebview') {
+                    namespace = 'com.pichillilorenzo.flutter_inappwebview'
+                } else {
+                    namespace = project.group ?: 'com.example.default'
+                }
+            }
+        }
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
