@@ -60,3 +60,4 @@ dist/
 # SQLite local database file (if you are using it)
 .data/
 *.db
+my-strapi-project/
