@@ -177,13 +177,32 @@ class _RoundColumn extends StatelessWidget {
     final topPad = stride * (mult - 1) / 2;
     final betweenPad = stride * mult - PlayoffBracket._cardHeight;
 
+    // Place each match at the slot index implied by its 1-based MatchNumber.
+    // Matches without a MatchNumber fall back to fill remaining slots in
+    // their existing (already-sorted) order.
+    final slots = List<PlayoffMatch?>.filled(cardCount, null);
+    final unplaced = <PlayoffMatch>[];
+    for (final m in matches) {
+      final n = m.matchNumber;
+      if (n != null && n >= 1 && n <= cardCount && slots[n - 1] == null) {
+        slots[n - 1] = m;
+      } else {
+        unplaced.add(m);
+      }
+    }
+    for (final m in unplaced) {
+      final empty = slots.indexOf(null);
+      if (empty == -1) break;
+      slots[empty] = m;
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(height: topPad),
         for (int i = 0; i < cardCount; i++) ...[
           if (i > 0) SizedBox(height: betweenPad),
-          _MatchCard(match: i < matches.length ? matches[i] : null),
+          _MatchCard(match: slots[i]),
         ],
         SizedBox(height: topPad),
       ],

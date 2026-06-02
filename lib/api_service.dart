@@ -455,6 +455,18 @@ class ApiService {
             grouped[m.stage!]!.add(m);
           }
         }
+        // Sort each stage by MatchNumber so the bracket renders in canonical
+        // top-to-bottom order. Matches without a MatchNumber sink to the end.
+        for (final list in grouped.values) {
+          list.sort((a, b) {
+            final an = a.matchNumber;
+            final bn = b.matchNumber;
+            if (an == null && bn == null) return 0;
+            if (an == null) return 1;
+            if (bn == null) return -1;
+            return an.compareTo(bn);
+          });
+        }
         return grouped;
       },
     );

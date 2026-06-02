@@ -122,6 +122,10 @@ class PlayoffMatch {
   final int id;
   final String? documentId;
   final PlayoffStage? stage;
+  /// 1-based slot index within the stage. Used to sort matches into the
+  /// canonical bracket order (top → bottom). Comes from Strapi's
+  /// `MatchNumber` field.
+  final int? matchNumber;
   final String? matchStatus;
   final String? type;
   final int? homeScore;
@@ -135,6 +139,7 @@ class PlayoffMatch {
     required this.id,
     this.documentId,
     this.stage,
+    this.matchNumber,
     this.matchStatus,
     this.type,
     this.homeScore,
@@ -166,6 +171,9 @@ class PlayoffMatch {
       id: json['id'] ?? 0,
       documentId: json['documentId']?.toString(),
       stage: parsedStage,
+      matchNumber: json['MatchNumber'] is int
+          ? json['MatchNumber'] as int
+          : int.tryParse(json['MatchNumber']?.toString() ?? ''),
       matchStatus: json['MatchStatus']?.toString(),
       type: json['Type']?.toString(),
       homeScore: json['HomeScore'] is int ? json['HomeScore'] as int : null,
@@ -179,9 +187,9 @@ class PlayoffMatch {
     debugPrint(
       'PlayoffMatch.fromJson: id=${match.id} '
       'rawStage="$rawStage" parsed=${parsedStage?.name ?? "DROPPED"} '
+      'matchNumber=${match.matchNumber} '
       'home="${match.homeTeamName}" (${match.homeScore}) vs '
-      'away="${match.awayTeamName}" (${match.awayScore}) '
-      'rawKeys=${json.keys.toList()}',
+      'away="${match.awayTeamName}" (${match.awayScore})',
     );
 
     return match;
