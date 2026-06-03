@@ -18,6 +18,7 @@ class FigmaToCodeApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SelectionProvider()),
       ],
       child: MaterialApp(
+        title: 'Results DG',
         theme: ThemeData.dark().copyWith(
           scaffoldBackgroundColor: const Color(0xFF000033),
         ),

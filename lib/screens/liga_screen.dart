@@ -5,10 +5,10 @@ import '../api_service.dart';
 import '../models/match.dart';
 import '../models/playoff.dart';
 import '../models/standing.dart';
+import '../widgets/home_fab.dart';
 import '../widgets/leaderboard_header.dart';
 import '../widgets/league_nav_tabs.dart';
-import '../widgets/top_nav_bar.dart';
-import 'playoff_bracket_screen.dart';
+import '../widgets/page_dots_indicator.dart';
 import 'team_detail_screen.dart';
 
 /// Combined payload powering the Liga page: league meta-info (used to decide
@@ -60,11 +60,6 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
   late Future<_LigaData> _futureLigaData;
   late final PageController _pageController;
   int _currentPage = 0;
-
-  /// True if the loaded league has at least one playoff match. Controls the
-  /// visibility of the "Playoff" button shown next to the Classificação
-  /// header.
-  bool _hasPlayoffs = false;
 
   /// Whether the current game has a second leaderboard page (rounds/matches stats).
   bool get _hasStatsPage {
@@ -132,11 +127,6 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
       standings: results[1] as List<Standing>,
       playoffMatches: results[2] as Map<PlayoffStage, List<PlayoffMatch>>,
     );
-    final hasPlayoffs =
-        data.playoffMatches.values.any((list) => list.isNotEmpty);
-    if (mounted && hasPlayoffs != _hasPlayoffs) {
-      setState(() => _hasPlayoffs = hasPlayoffs);
-    }
     return data;
   }
 
@@ -150,21 +140,12 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
       color: const Color(0xFF000031),
       child: Stack(
         children: [
-          // ========== TOP NAVBAR ==========
+          // ========== PAGE CONTENT ==========
           Positioned(
             top: statusBarHeight,
             left: 0,
             right: 0,
-            height: 76,
-            child: const TopNavBar(),
-          ),
-
-          // ========== PAGE CONTENT ==========
-          Positioned(
-            top: statusBarHeight + 76,
-            left: 0,
-            right: 0,
-            bottom: _hasStatsPage ? 110 : 55,
+            bottom: _hasStatsPage ? 83 : 55,
             child: FutureBuilder<_LigaData>(
               future: _futureLigaData,
               builder: (context, snapshot) {
@@ -260,7 +241,7 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
             bottom: 0,
             left: 0,
             right: 0,
-            height: _hasStatsPage ? 110 : 55,
+            height: _hasStatsPage ? 83 : 55,
             child: Container(
               width: double.infinity,
               clipBehavior: Clip.antiAlias,
@@ -278,23 +259,22 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
               child: Column(
                 children: [
                   if (_hasStatsPage)
-                    Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: Color(0xFFE000FF), width: 2),
-                            bottom: BorderSide(color: Color(0xFFE000FF), width: 2),
-                          ),
+                    Container(
+                      width: double.infinity,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE000FF), width: 2),
+                          bottom: BorderSide(color: Color(0xFFE000FF), width: 2),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildDot(0),
-                            const SizedBox(width: 12),
-                            _buildDot(1),
-                          ],
+                      ),
+                      child: PageDotsIndicator(
+                        pageCount: 2,
+                        currentPage: _currentPage,
+                        onDotTap: (index) => _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
                         ),
                       ),
                     )
@@ -314,53 +294,14 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  /// Compact neon button shown next to the "Classificação" header. Tapping
-  /// it opens the playoff bracket screen for the currently selected
-  /// league + game.
-  Widget _buildPlayoffButton() {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(6),
-        onTap: () {
-          final selection = context.read<SelectionProvider>();
-          final leagueId = selection.selectedLeagueId;
-          final gameId = selection.selectedGameId;
-          if (leagueId == null || gameId == null) return;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PlayoffBracketScreen(
-                leagueId: leagueId,
-                gameId: gameId,
-                leagueName: widget.leagueName,
-              ),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF00FF).withValues(alpha: 0.15),
-            border: Border.all(color: const Color(0xFFFF00FF), width: 1.5),
-            borderRadius: BorderRadius.circular(6),
+          // ========== HOME FAB ==========
+          Positioned(
+            right: 16,
+            bottom: (_hasStatsPage ? 83 : 55) + 16,
+            child: const HomeFab(),
           ),
-          child: const Text(
-            'Playoff',
-            style: TextStyle(
-              color: Color(0xFF00FFFF),
-              fontSize: 13,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -551,45 +492,6 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
     );
   }
 
-  Widget _buildDot(int index) {
-    final isActive = _currentPage == index;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        },
-        splashColor: const Color(0xFF00FFFF).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          width: isActive ? 16 : 12,
-          height: isActive ? 16 : 12,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive
-                ? const Color(0xFF00FFFF)
-                : const Color(0xFF00FFFF).withValues(alpha: 0.4),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF00FFFF).withValues(alpha: 0.6),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildFirstLeaderboardPage(List<Standing> standings) {
     final leagueLogo = standings.isNotEmpty ? standings.first.leagueLogoUrl : '';
     return SingleChildScrollView(
@@ -601,10 +503,7 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
             logoUrl: leagueLogo,
           ),
           const Divider(color: Color(0xFFE000FF), thickness: 2, height: 0),
-          LeaderboardSectionTitle(
-            'Classificação',
-            trailing: _hasPlayoffs ? _buildPlayoffButton() : null,
-          ),
+          const LeaderboardSectionTitle('Classificação'),
 
           // Table Header
           Container(

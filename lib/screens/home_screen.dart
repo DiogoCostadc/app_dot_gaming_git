@@ -4,7 +4,6 @@ import '../api_service.dart';
 import 'liga_screen.dart';
 import '../selection_provider.dart';
 import '../models/game.dart';
-import '../widgets/top_nav_bar.dart';
 
 // Custom Game List Item Widget
 class GameListItem extends StatelessWidget {
@@ -147,18 +146,9 @@ class _TelaInicialState extends State<TelaInicial> {
       color: const Color(0xFF000033),
       child: Stack(
         children: [
-          // ========== TOP NAVBAR ==========
-          Positioned(
-            top: statusBarHeight,
-            left: 0,
-            right: 0,
-            height: 76,
-            child: const TopNavBar(),
-          ),
-
           // ========== PAGE CONTENT ==========
           Positioned(
-            top: statusBarHeight + 76,
+            top: statusBarHeight,
             left: 0,
             right: 0,
             bottom: 0,

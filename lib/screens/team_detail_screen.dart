@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/match.dart';
 import '../api_service.dart';
+import '../widgets/page_dots_indicator.dart';
 import 'liga_screen.dart';
 import '../config.dart';
 import 'match_detail_screen.dart';
@@ -817,42 +818,10 @@ class _TeamDetailPageState extends State<TeamDetailPage>
       decoration: const BoxDecoration(
           border:
               Border(top: BorderSide(width: 2, color: Color(0xFFE000FF)))),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(
-          4,
-          (index) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _onDotTap(index),
-                splashColor: const Color(0xFF00FFFF).withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(12),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: _currentTabIndex == index ? 16 : 12,
-                  height: _currentTabIndex == index ? 16 : 12,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _currentTabIndex == index
-                          ? const Color(0xFF00FFFF)
-                          : const Color(0xFF00FFFF)
-                              .withValues(alpha: 0.4),
-                      boxShadow: _currentTabIndex == index
-                          ? [
-                              BoxShadow(
-                                  color: const Color(0xFF00FFFF)
-                                      .withValues(alpha: 0.5),
-                                  blurRadius: 8,
-                                  spreadRadius: 2)
-                            ]
-                          : null),
-                ),
-              ),
-            ),
-          ),
-        ),
+      child: PageDotsIndicator(
+        pageCount: 4,
+        currentPage: _currentTabIndex,
+        onDotTap: _onDotTap,
       ),
     );
   }

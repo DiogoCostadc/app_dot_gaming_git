@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 import '../api_service.dart';
 import '../selection_provider.dart';
 import '../models/jornada.dart';
+import '../widgets/home_fab.dart';
 import '../widgets/league_nav_tabs.dart';
-import '../widgets/top_nav_bar.dart';
+import '../widgets/page_dots_indicator.dart';
 import 'match_detail_screen.dart';
 
 class JornadasPage extends StatelessWidget {
@@ -101,21 +102,12 @@ class _TelaJornadasState extends State<TelaJornadas> {
       color: const Color(0xFF000033),
       child: Stack(
         children: [
-          // ========== TOP NAVBAR ==========
+          // ========== PAGE CONTENT WITH SWIPE DETECTION ==========
           Positioned(
             top: statusBarHeight,
             left: 0,
             right: 0,
-            height: 76,
-            child: const TopNavBar(),
-          ),
-
-          // ========== PAGE CONTENT WITH SWIPE DETECTION ==========
-          Positioned(
-            top: statusBarHeight + 76,
-            left: 0,
-            right: 0,
-            bottom: 110,
+            bottom: 83,
             child: _isLoading
                 ? const Center(
                     child: CircularProgressIndicator(
@@ -304,10 +296,9 @@ class _TelaJornadasState extends State<TelaJornadas> {
             bottom: 0,
             left: 0,
             right: 0,
-            height: 110,
+            height: 83,
             child: Container(
               width: double.infinity,
-              height: 110,
               clipBehavior: Clip.antiAlias,
               decoration: const BoxDecoration(
                 color: Color(0x332B2626),
@@ -323,63 +314,22 @@ class _TelaJornadasState extends State<TelaJornadas> {
               child: Column(
                 children: [
                   // Pagination Dots (showing Jornada progress)
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                            color: Color(0xFFE000FF),
-                            width: 2,
-                          ),
-                          bottom: BorderSide(
-                            color: Color(0xFFE000FF),
-                            width: 2,
-                          ),
-                        ),
+                  Container(
+                    width: double.infinity,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Color(0xFFE000FF), width: 2),
+                        bottom: BorderSide(color: Color(0xFFE000FF), width: 2),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          _jornadas.length > 6 ? 6 : _jornadas.length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  _pageController.animateToPage(
-                                    index,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                  );
-                                },
-                                splashColor: const Color(0xFF00FFFF).withValues(alpha: 0.4),
-                                borderRadius: BorderRadius.circular(12),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  width: _currentJornadaIndex == index ? 16 : 12,
-                                  height: _currentJornadaIndex == index ? 16 : 12,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: _currentJornadaIndex == index
-                                        ? const Color(0xFF00FFFF)
-                                        : const Color(0xFF00FFFF)
-                                            .withValues(alpha: 0.4),
-                                    boxShadow: _currentJornadaIndex == index ? [
-                                      BoxShadow(
-                                        color: const Color(0xFF00FFFF).withValues(alpha: 0.5),
-                                        blurRadius: 8,
-                                        spreadRadius: 2,
-                                      ),
-                                    ] : null,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                    ),
+                    child: PageDotsIndicator(
+                      pageCount: _jornadas.length,
+                      currentPage: _currentJornadaIndex,
+                      onDotTap: (index) => _pageController.animateToPage(
+                        index,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
                       ),
                     ),
                   ),
@@ -394,6 +344,13 @@ class _TelaJornadasState extends State<TelaJornadas> {
                 ],
               ),
             ),
+          ),
+
+          // ========== HOME FAB ==========
+          const Positioned(
+            right: 16,
+            bottom: 83 + 16,
+            child: HomeFab(),
           ),
         ],
       ),

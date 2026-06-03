@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import '../screens/home_screen.dart';
-import '../screens/liga_screen.dart';
+import 'package:provider/provider.dart';
 import '../screens/jornadas_screen.dart';
+import '../screens/liga_screen.dart';
+import '../screens/playoff_bracket_screen.dart';
+import '../selection_provider.dart';
 
 /// Identifies which of the three bottom tabs is currently active.
-enum LeagueNavTab { liga, classificacao, jornadas }
+enum LeagueNavTab { classificacao, jornadas, playoff }
 
-/// Shared bottom-navigation bar used across the Liga and Jornadas screens.
+/// Shared bottom-navigation bar used across the Liga, Jornadas and Playoff
+/// screens. Tabs from left to right: Classificação, Jornadas, Playoff.
 ///
-/// The left ("Liga") tab always returns to the home screen. The other two
-/// tabs navigate between the standings (Classificação) and Jornadas pages.
-/// The [active] tab is rendered with the highlight style and no tap handler.
+/// The currently [active] tab is rendered with the highlight style and is
+/// non-interactive.
 class LeagueNavTabs extends StatelessWidget {
   final LeagueNavTab active;
   final String gameName;
@@ -22,15 +24,6 @@ class LeagueNavTabs extends StatelessWidget {
     required this.gameName,
     required this.leagueName,
   });
-
-  void _goHome(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => const Scaffold(body: TelaInicial()),
-      ),
-      (route) => false,
-    );
-  }
 
   void _goClassificacao(BuildContext context) {
     Navigator.push(
@@ -48,14 +41,27 @@ class LeagueNavTabs extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PopScope(
-          canPop: true,
-          // Selection persists between Liga and Jornadas pages.
-          onPopInvokedWithResult: (didPop, result) {},
-          child: JornadasPage(
-            gameName: gameName,
-            leagueName: leagueName,
-          ),
+        builder: (_) => JornadasPage(
+          gameName: gameName,
+          leagueName: leagueName,
+        ),
+      ),
+    );
+  }
+
+  void _goPlayoff(BuildContext context) {
+    final selection = context.read<SelectionProvider>();
+    final leagueId = selection.selectedLeagueId;
+    final gameId = selection.selectedGameId;
+    if (leagueId == null || gameId == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlayoffBracketScreen(
+          leagueId: leagueId,
+          gameId: gameId,
+          leagueName: leagueName,
+          gameName: gameName,
         ),
       ),
     );
@@ -68,12 +74,6 @@ class LeagueNavTabs extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _NavTab(
-          label: 'Liga',
-          fontSize: 20,
-          isActive: active == LeagueNavTab.liga,
-          onTap: active == LeagueNavTab.liga ? null : () => _goHome(context),
-        ),
         _NavTab(
           label: 'Classificação',
           fontSize: 15,
@@ -89,6 +89,14 @@ class LeagueNavTabs extends StatelessWidget {
           onTap: active == LeagueNavTab.jornadas
               ? null
               : () => _goJornadas(context),
+        ),
+        _NavTab(
+          label: 'Playoff',
+          fontSize: 15,
+          isActive: active == LeagueNavTab.playoff,
+          onTap: active == LeagueNavTab.playoff
+              ? null
+              : () => _goPlayoff(context),
         ),
       ],
     );

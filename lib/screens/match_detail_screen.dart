@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/match.dart';
+import '../widgets/page_dots_indicator.dart';
 import '../widgets/player_list.dart';
 import 'team_detail_screen.dart';
 import '../widgets/stream_player.dart';
@@ -631,67 +632,10 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
                     // Tab Indicators (Neon Dots) - Moved to Bottom
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Players List Tab
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                _tabController.animateTo(0);
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                width: _tabController.index == 0 ? 16 : 12,
-                                height: _tabController.index == 0 ? 16 : 12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: _tabController.index == 0 
-                                      ? const Color(0xFF00FFFF) 
-                                      : const Color(0xFF00FFFF).withValues(alpha: 0.4),
-                                  boxShadow: _tabController.index == 0 ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF00FFFF).withValues(alpha: 0.5),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                  ] : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                          
-                          const SizedBox(width: 12),
-                          
-                          // Twitch Stream Tab
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                _tabController.animateTo(1);
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                width: _tabController.index == 1 ? 16 : 12,
-                                height: _tabController.index == 1 ? 16 : 12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: _tabController.index == 1 
-                                      ? const Color(0xFF00FFFF) 
-                                      : const Color(0xFF00FFFF).withValues(alpha: 0.4),
-                                  boxShadow: _tabController.index == 1 ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF00FFFF).withValues(alpha: 0.5),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                  ] : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: PageDotsIndicator(
+                        pageCount: _tabController.length,
+                        currentPage: _tabController.index,
+                        onDotTap: (index) => _tabController.animateTo(index),
                       ),
                     ),
                   ],
