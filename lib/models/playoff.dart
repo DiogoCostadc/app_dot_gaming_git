@@ -159,7 +159,7 @@ class PlayoffMatch {
     String? extractTeamLogo(dynamic raw) {
       if (raw is Map && raw['Logo'] is Map) {
         final url = (raw['Logo'] as Map)['url'];
-        if (url != null) return '$apiBaseUrl$url';
+        if (url != null) return resolveMediaUrl(url);
       }
       return null;
     }

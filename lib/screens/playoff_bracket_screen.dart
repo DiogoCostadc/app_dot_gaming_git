@@ -56,9 +56,7 @@ class _PlayoffBracketScreenState extends State<PlayoffBracketScreen> {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     const bottomNavHeight = 55.0;
 
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
+    return Material(
       color: const Color(0xFF000033),
       child: Stack(
         children: [

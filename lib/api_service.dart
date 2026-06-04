@@ -59,10 +59,14 @@ class ApiService {
     final response = await http.get(uri);
 
     if (response.statusCode != 200) {
+      debugPrint('ApiService: GET $key failed: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
       throw Exception('GET $key failed: ${response.statusCode}');
     }
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;
+    debugPrint('ApiService: GET $key success. Raw JSON:');
+    debugPrint(jsonEncode(json));
     final parsed = parse(json);
 
     if (useCache) {
@@ -100,7 +104,7 @@ class ApiService {
           String? leagueLogo;
           if (league['Logo'] is Map) {
             final logoUrl = (league['Logo'] as Map)['url'];
-            if (logoUrl != null) leagueLogo = '$apiBaseUrl$logoUrl';
+            if (logoUrl != null) leagueLogo = resolveMediaUrl(logoUrl.toString());
           }
 
           final games = league['games'];

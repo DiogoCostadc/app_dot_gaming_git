@@ -77,7 +77,7 @@ class _TeamDetailPageState extends State<TeamDetailPage>
         if (league['Logo'] != null && league['Logo'] is Map) {
           final url = league['Logo']['url'];
           if (url != null) {
-            leagueLogoUrl = '$apiBaseUrl$url';
+            leagueLogoUrl = resolveMediaUrl(url.toString());
           }
         }
       }
@@ -112,7 +112,7 @@ class _TeamDetailPageState extends State<TeamDetailPage>
         home = ht['Name'] ?? 'Unknown';
         if (ht['Logo'] != null && ht['Logo'] is Map) {
           final url = ht['Logo']['url'];
-          if (url != null) homeLogo = '$apiBaseUrl$url';
+          if (url != null) homeLogo = resolveMediaUrl(url.toString());
         }
       }
       if (m['AwayTeam'] != null && m['AwayTeam'] is Map) {
@@ -120,7 +120,7 @@ class _TeamDetailPageState extends State<TeamDetailPage>
         away = at['Name'] ?? 'Unknown';
         if (at['Logo'] != null && at['Logo'] is Map) {
           final url = at['Logo']['url'];
-          if (url != null) awayLogo = '$apiBaseUrl$url';
+          if (url != null) awayLogo = resolveMediaUrl(url.toString());
         }
       }
       if (m['League'] != null && m['League'] is Map) {

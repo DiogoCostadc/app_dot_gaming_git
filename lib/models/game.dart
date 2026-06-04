@@ -35,7 +35,7 @@ class Game {
           if (firstLeague['Logo'] != null && firstLeague['Logo'] is Map) {
             final logoUrl = firstLeague['Logo']['url'];
             if (logoUrl != null) {
-              leagueLogo = '$apiBaseUrl$logoUrl';
+              leagueLogo = resolveMediaUrl(logoUrl);
             }
           }
         }

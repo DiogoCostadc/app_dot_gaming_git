@@ -10,6 +10,7 @@ class GameListItem extends StatelessWidget {
   final String gameName;
   final String leagueName;
   final String matchCount;
+  final String? logoUrl;
   final VoidCallback onTap;
 
   const GameListItem({
@@ -18,6 +19,7 @@ class GameListItem extends StatelessWidget {
     required this.leagueName,
     required this.matchCount,
     required this.onTap,
+    this.logoUrl,
   });
 
   @override
@@ -54,11 +56,24 @@ class GameListItem extends StatelessWidget {
                       height: 50,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
-                        image: const DecorationImage(
-                          image: NetworkImage("https://placehold.co/50x50"),
-                          fit: BoxFit.cover,
-                        ),
+                        color: const Color(0xFF1A1A4D),
                       ),
+                      clipBehavior: Clip.antiAlias,
+                      child: (logoUrl != null && logoUrl!.isNotEmpty)
+                          ? Image.network(
+                              logoUrl!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (c, e, s) => const Icon(
+                                Icons.sports_esports,
+                                color: Colors.white54,
+                                size: 28,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.sports_esports,
+                              color: Colors.white54,
+                              size: 28,
+                            ),
                     ),
                   ),
                   // Game Name + Tournament Brand (Center-Left)
@@ -213,30 +228,41 @@ class _TelaInicialState extends State<TelaInicial> {
                 }
                 debugPrint('==========================');
 
+                // Group games by their parent league (leagueId fallback to name)
+                final Map<String, List<Game>> grouped = {};
+                final List<String> order = [];
+                for (final g in games) {
+                  final key = (g.leagueId?.toString()) ??
+                      (g.categoryName ?? 'Unknown League');
+                  if (!grouped.containsKey(key)) {
+                    grouped[key] = [];
+                    order.add(key);
+                  }
+                  grouped[key]!.add(g);
+                }
+
                 return ListView.builder(
-                  itemCount: games.length + 1, // +1 for bottom divider
+                  itemCount: order.length + 1, // +1 for bottom divider
                   itemBuilder: (context, index) {
-                    if (index == games.length) {
-                      // Bottom divider to close the list
+                    if (index == order.length) {
                       return Container(
                         width: double.infinity,
                         height: 2,
                         color: const Color(0xFFFF00FF),
                       );
                     }
-                    final game = games[index];
-                    return GameListItem(
-                      gameName: game.name,
-                      leagueName: game.categoryName ?? 'Unknown League',
-                      matchCount: game.currentGames.toString(),
-                      onTap: () {
-                        // Update provider with selected league and game
+                    final key = order[index];
+                    final groupGames = grouped[key]!;
+                    final first = groupGames.first;
+                    return _LeagueGroup(
+                      leagueName: first.categoryName ?? 'Unknown League',
+                      logoUrl: first.leagueLogo,
+                      games: groupGames,
+                      onGameTap: (game) {
                         context.read<SelectionProvider>().updateSelection(
                           game.leagueId ?? 0,
                           game.id,
                         );
-
-                        // Navigate to LigaPage with PopScope wrapper
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -244,13 +270,15 @@ class _TelaInicialState extends State<TelaInicial> {
                               canPop: true,
                               onPopInvokedWithResult: (didPop, result) {
                                 if (didPop) {
-                                  // Clear selection when navigating back
-                                  context.read<SelectionProvider>().clearSelection();
+                                  context
+                                      .read<SelectionProvider>()
+                                      .clearSelection();
                                 }
                               },
                               child: LigaPage(
                                 gameName: game.name,
-                                leagueName: game.categoryName ?? 'Unknown League',
+                                leagueName:
+                                    game.categoryName ?? 'Unknown League',
                               ),
                             ),
                           ),
@@ -263,6 +291,195 @@ class _TelaInicialState extends State<TelaInicial> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Expandable league group: shows the league header (logo + name + chevron),
+/// and when expanded, lists each video-game league entry inside.
+class _LeagueGroup extends StatefulWidget {
+  final String leagueName;
+  final String? logoUrl;
+  final List<Game> games;
+  final void Function(Game game) onGameTap;
+
+  const _LeagueGroup({
+    required this.leagueName,
+    required this.logoUrl,
+    required this.games,
+    required this.onGameTap,
+  });
+
+  @override
+  State<_LeagueGroup> createState() => _LeagueGroupState();
+}
+
+class _LeagueGroupState extends State<_LeagueGroup>
+    with SingleTickerProviderStateMixin {
+  bool _expanded = false;
+
+  void _toggle() => setState(() => _expanded = !_expanded);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Top neon magenta divider
+        Container(
+          width: double.infinity,
+          height: 2,
+          color: const Color(0xFFFF00FF),
+        ),
+        // League header (tap to expand/collapse)
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _toggle,
+            splashColor: const Color(0xFF00FFFF).withValues(alpha: 0.2),
+            highlightColor: const Color(0xFF00FFFF).withValues(alpha: 0.1),
+            child: Container(
+              width: double.infinity,
+              height: 72,
+              color: const Color(0xFF000033),
+              child: Row(
+                children: [
+                  // League logo
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 12),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        color: const Color(0xFF1A1A4D),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: (widget.logoUrl != null &&
+                              widget.logoUrl!.isNotEmpty)
+                          ? Image.network(
+                              widget.logoUrl!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (c, e, s) => const Icon(
+                                Icons.emoji_events,
+                                color: Colors.white54,
+                                size: 28,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.emoji_events,
+                              color: Colors.white54,
+                              size: 28,
+                            ),
+                    ),
+                  ),
+                  // League name
+                  Expanded(
+                    child: Text(
+                      widget.leagueName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  // Chevron
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: AnimatedRotation(
+                      turns: _expanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Color(0xFF00FFFF),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Expanded children (game rows)
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: _expanded
+              ? Column(
+                  children: [
+                    for (final game in widget.games)
+                      _LeagueGroupItem(
+                        game: game,
+                        onTap: () => widget.onGameTap(game),
+                      ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+/// A single video-game row inside an expanded league group.
+class _LeagueGroupItem extends StatelessWidget {
+  final Game game;
+  final VoidCallback onTap;
+
+  const _LeagueGroupItem({required this.game, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: const Color(0xFF00FFFF).withValues(alpha: 0.2),
+        highlightColor: const Color(0xFF00FFFF).withValues(alpha: 0.1),
+        child: Container(
+          width: double.infinity,
+          height: 56,
+          decoration: const BoxDecoration(
+            color: Color(0xFF0A0A3D),
+            border: Border(
+              top: BorderSide(color: Color(0xFF1A1A4D), width: 1),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              const SizedBox(width: 12),
+              Container(
+                width: 4,
+                height: 24,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF00FFFF),
+                  borderRadius: BorderRadius.all(Radius.circular(2)),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  game.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: Colors.white54,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

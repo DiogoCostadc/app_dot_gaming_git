@@ -52,7 +52,7 @@ class Match {
         final logo = homeTeam['Logo'] as Map<String, dynamic>;
         final logoUrl = logo['url'] ?? logo['formats']?['thumbnail']?['url'];
         if (logoUrl != null) {
-          homeTeamLogoUrl = '$apiBaseUrl$logoUrl';
+          homeTeamLogoUrl = resolveMediaUrl(logoUrl);
         }
       }
     }
@@ -67,7 +67,7 @@ class Match {
         final logo = awayTeam['Logo'] as Map<String, dynamic>;
         final logoUrl = logo['url'] ?? logo['formats']?['thumbnail']?['url'];
         if (logoUrl != null) {
-          awayTeamLogoUrl = '$apiBaseUrl$logoUrl';
+          awayTeamLogoUrl = resolveMediaUrl(logoUrl);
         }
       }
     }
@@ -129,7 +129,7 @@ class Jornada {
       if (league['Logo'] != null && league['Logo'] is Map) {
         final logoUrl = league['Logo']['url'];
         if (logoUrl != null) {
-          leagueLogoUrl = '$apiBaseUrl$logoUrl';
+          leagueLogoUrl = resolveMediaUrl(logoUrl);
         }
       }
     }

@@ -48,17 +48,15 @@ class Match {
       leagueName = json['LeagueName'].toString();
     }
     
-    // Extract full logo URLs at Match level with null checks and base URL
-    const String baseUrl = apiBaseUrl;
-    
+    // Extract full logo URLs at Match level with null checks
     String homeLogoUrl = '';
     if (json['HomeTeam'] != null && json['HomeTeam']['Logo'] != null && json['HomeTeam']['Logo']['url'] != null) {
-      homeLogoUrl = baseUrl + json['HomeTeam']['Logo']['url'].toString();
+      homeLogoUrl = resolveMediaUrl(json['HomeTeam']['Logo']['url'].toString());
     }
     
     String awayLogoUrl = '';
     if (json['AwayTeam'] != null && json['AwayTeam']['Logo'] != null && json['AwayTeam']['Logo']['url'] != null) {
-      awayLogoUrl = baseUrl + json['AwayTeam']['Logo']['url'].toString();
+      awayLogoUrl = resolveMediaUrl(json['AwayTeam']['Logo']['url'].toString());
     }
     
     debugPrint('Home logo URL: $homeLogoUrl');

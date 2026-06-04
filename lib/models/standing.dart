@@ -31,8 +31,6 @@ class Standing {
   int get roundDifference => winRounds - lossRounds;
 
   factory Standing.fromJson(Map<String, dynamic> json) {
-    const String baseUrl = apiBaseUrl;
-
     // Extract team data from nested team object
     String teamName = 'Unknown Team';
     int? teamId;
@@ -44,7 +42,7 @@ class Standing {
       if (team['Logo'] != null && team['Logo'] is Map) {
         final logoUrl = team['Logo']['url'];
         if (logoUrl != null) {
-          teamLogoUrl = baseUrl + logoUrl.toString();
+          teamLogoUrl = resolveMediaUrl(logoUrl.toString());
         }
       }
     }
@@ -56,7 +54,7 @@ class Standing {
       if (league['Logo'] != null && league['Logo'] is Map) {
         final logoUrl = league['Logo']['url'];
         if (logoUrl != null) {
-          leagueLogoUrl = baseUrl + logoUrl.toString();
+          leagueLogoUrl = resolveMediaUrl(logoUrl.toString());
         }
       }
     }
