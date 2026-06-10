@@ -348,7 +348,7 @@ class _TelaJornadasState extends State<TelaJornadas> {
 
           // ========== HOME FAB ==========
           const Positioned(
-            right: 16,
+            left: 16,
             bottom: 83 + 16,
             child: HomeFab(),
           ),

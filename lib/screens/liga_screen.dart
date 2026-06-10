@@ -9,6 +9,7 @@ import '../widgets/home_fab.dart';
 import '../widgets/leaderboard_header.dart';
 import '../widgets/league_nav_tabs.dart';
 import '../widgets/page_dots_indicator.dart';
+import '../widgets/playoff_bracket.dart';
 import 'team_detail_screen.dart';
 
 /// Combined payload powering the Liga page: league meta-info (used to decide
@@ -60,6 +61,11 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
   late Future<_LigaData> _futureLigaData;
   late final PageController _pageController;
   int _currentPage = 0;
+
+  /// True when the league has no standings at all — only playoff matches.
+  /// In this mode the bottom nav bar is hidden and the playoff bracket is
+  /// rendered directly as the page content.
+  bool _isPlayoffOnly = false;
 
   /// Whether the current game has a second leaderboard page (rounds/matches stats).
   bool get _hasStatsPage {
@@ -127,6 +133,12 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
       standings: results[1] as List<Standing>,
       playoffMatches: results[2] as Map<PlayoffStage, List<PlayoffMatch>>,
     );
+    final hasPlayoffs =
+        data.playoffMatches.values.any((list) => list.isNotEmpty);
+    final isPlayoffOnly = data.standings.isEmpty && hasPlayoffs;
+    if (mounted && isPlayoffOnly != _isPlayoffOnly) {
+      setState(() => _isPlayoffOnly = isPlayoffOnly);
+    }
     return data;
   }
 
@@ -145,7 +157,7 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
             top: statusBarHeight,
             left: 0,
             right: 0,
-            bottom: _hasStatsPage ? 83 : 55,
+            bottom: _isPlayoffOnly ? 0 : (_hasStatsPage ? 83 : 55),
             child: FutureBuilder<_LigaData>(
               future: _futureLigaData,
               builder: (context, snapshot) {
@@ -212,6 +224,36 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
                 final data = snapshot.data!;
                 final standings = data.standings;
                 if (standings.isEmpty) {
+                  // Playoff-only league: no standings/jornadas — show the
+                  // playoff bracket directly as the page content.
+                  final hasPlayoffs = data.playoffMatches.values
+                      .any((list) => list.isNotEmpty);
+                  if (hasPlayoffs) {
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            widget.leagueName,
+                            style: const TextStyle(
+                              color: Color(0xFF00FFFF),
+                              fontSize: 14,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: PlayoffBracket(
+                            size: data.leagueDetails.size ??
+                                PlayoffSize.teams8,
+                            matchesByStage: data.playoffMatches,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
                   return const Center(
                     child: Text(
                       'No standings found',
@@ -236,7 +278,8 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
             ),
           ),
 
-          // ========== BOTTOM NAVBAR ==========
+          // ========== BOTTOM NAVBAR (hidden for playoff-only leagues) ==========
+          if (!_isPlayoffOnly)
           Positioned(
             bottom: 0,
             left: 0,
@@ -297,8 +340,8 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
 
           // ========== HOME FAB ==========
           Positioned(
-            right: 16,
-            bottom: (_hasStatsPage ? 83 : 55) + 16,
+            left: 16,
+            bottom: _isPlayoffOnly ? 16 : (_hasStatsPage ? 83 : 55) + 16,
             child: const HomeFab(),
           ),
         ],
