@@ -151,6 +151,14 @@ class _TelaInicialState extends State<TelaInicial> {
 
   Future<List<Game>> fetchGames() => ApiService.fetchGames();
 
+  /// Pull-to-refresh: bust the cache and reload the games list.
+  Future<void> _refresh() async {
+    ApiService.clearCache();
+    final future = fetchGames();
+    setState(() => futureGames = future);
+    await future;
+  }
+
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
@@ -241,7 +249,12 @@ class _TelaInicialState extends State<TelaInicial> {
                   grouped[key]!.add(g);
                 }
 
-                return ListView.builder(
+                return RefreshIndicator(
+                  onRefresh: _refresh,
+                  color: const Color(0xFF00FFFF),
+                  backgroundColor: const Color(0xFF000033),
+                  child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   itemCount: order.length + 1, // +1 for bottom divider
                   itemBuilder: (context, index) {
                     if (index == order.length) {
@@ -286,6 +299,7 @@ class _TelaInicialState extends State<TelaInicial> {
                       },
                     );
                   },
+                ),
                 );
               },
             ),

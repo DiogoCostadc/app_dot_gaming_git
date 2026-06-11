@@ -65,8 +65,7 @@ class ApiService {
     }
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;
-    debugPrint('ApiService: GET $key success. Raw JSON:');
-    debugPrint(jsonEncode(json));
+    debugPrint('ApiService: GET $key success (${response.body.length} bytes)');
     final parsed = parse(json);
 
     if (useCache) {
@@ -135,7 +134,17 @@ class ApiService {
   // ========== Standings ==========
 
   /// Fetch standings with dynamic leagueId and gameId.
-  static Future<List<Standing>> fetchStandings(int? leagueId, int? gameId) async {
+  ///
+  /// When the server-side filter returns nothing and [useFallback] is true,
+  /// the entire standings collection is fetched and filtered on the client.
+  /// This is expensive, so callers that already know a league may legitimately
+  /// have no standings (e.g. playoff-only leagues) should pass
+  /// `useFallback: false` to avoid the wasteful full download.
+  static Future<List<Standing>> fetchStandings(
+    int? leagueId,
+    int? gameId, {
+    bool useFallback = true,
+  }) async {
     if (leagueId == null || gameId == null) {
       throw Exception('League ID and Game ID are required');
     }
@@ -157,8 +166,9 @@ class ApiService {
       },
     );
 
-    // If server-side filter returned nothing, fall back to client-side filtering.
-    if (standings.isEmpty) {
+    // If server-side filter returned nothing, optionally fall back to
+    // client-side filtering of the whole collection.
+    if (standings.isEmpty && useFallback) {
       return _fetchAllStandingsAndFilter(leagueId, gameId);
     }
     return standings;

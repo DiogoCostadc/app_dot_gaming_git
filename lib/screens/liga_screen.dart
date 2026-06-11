@@ -113,6 +113,30 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
     return ApiService.fetchStandings(leagueId, gameId);
   }
 
+  /// Pull-to-refresh handler: invalidates the cached responses and reloads the
+  /// league data so freshly-updated results are fetched from the server.
+  Future<void> _refresh() async {
+    final selectionProvider = context.read<SelectionProvider>();
+    ApiService.clearCache();
+    final future = _loadLigaData(
+      selectionProvider.selectedLeagueId,
+      selectionProvider.selectedGameId,
+    );
+    setState(() => _futureLigaData = future);
+    await future;
+  }
+
+  /// Wraps scrollable page content in a themed [RefreshIndicator] so a
+  /// pull-down (swipe at the top of the page) triggers [_refresh].
+  Widget _wrapRefresh(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      color: const Color(0xFF00FFFF),
+      backgroundColor: const Color(0xFF000031),
+      child: child,
+    );
+  }
+
   /// Fetch league meta-info, standings and playoff matches concurrently.
   ///
   /// All three are queried regardless of mode because they are cached, so
@@ -125,7 +149,10 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
     }
     final results = await Future.wait([
       ApiService.fetchLeagueDetails(leagueId),
-      ApiService.fetchStandings(leagueId, gameId),
+      // useFallback: false — for playoff-only leagues the filtered query
+      // correctly returns empty; without this guard it would download the
+      // entire standings collection just to discard it (the 1-2s stall).
+      ApiService.fetchStandings(leagueId, gameId, useFallback: false),
       ApiService.fetchPlayoffMatches(leagueId, gameId),
     ]);
     final data = (
@@ -229,29 +256,31 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
                   final hasPlayoffs = data.playoffMatches.values
                       .any((list) => list.isNotEmpty);
                   if (hasPlayoffs) {
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text(
-                            widget.leagueName,
-                            style: const TextStyle(
-                              color: Color(0xFF00FFFF),
-                              fontSize: 14,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.2,
+                    return _wrapRefresh(
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Text(
+                              widget.leagueName,
+                              style: const TextStyle(
+                                color: Color(0xFF00FFFF),
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.2,
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: PlayoffBracket(
-                            size: data.leagueDetails.size ??
-                                PlayoffSize.teams8,
-                            matchesByStage: data.playoffMatches,
+                          Expanded(
+                            child: PlayoffBracket(
+                              size: data.leagueDetails.size ??
+                                  PlayoffSize.teams8,
+                              matchesByStage: data.playoffMatches,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   }
                   return const Center(
@@ -263,15 +292,15 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
                 }
 
                 if (!_hasStatsPage) {
-                  return _buildFirstLeaderboardPage(standings);
+                  return _wrapRefresh(_buildFirstLeaderboardPage(standings));
                 }
 
                 return PageView(
                   controller: _pageController,
                   onPageChanged: (page) => setState(() => _currentPage = page),
                   children: [
-                    _buildFirstLeaderboardPage(standings),
-                    _buildSecondLeaderboardPage(standings),
+                    _wrapRefresh(_buildFirstLeaderboardPage(standings)),
+                    _wrapRefresh(_buildSecondLeaderboardPage(standings)),
                   ],
                 );
               },
@@ -538,6 +567,7 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
   Widget _buildFirstLeaderboardPage(List<Standing> standings) {
     final leagueLogo = standings.isNotEmpty ? standings.first.leagueLogoUrl : '';
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         children: [
           LeaderboardHeader(
@@ -630,6 +660,7 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
         : 'Estatísticas de Rondas';
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         children: [
           LeaderboardHeader(

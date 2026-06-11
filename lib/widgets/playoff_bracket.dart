@@ -54,6 +54,7 @@ class PlayoffBracket extends StatelessWidget {
       builder: (context, constraints) {
         return SingleChildScrollView(
           scrollDirection: Axis.vertical,
+          physics: const AlwaysScrollableScrollPhysics(),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: ConstrainedBox(

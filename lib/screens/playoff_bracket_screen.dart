@@ -37,6 +37,14 @@ class _PlayoffBracketScreenState extends State<PlayoffBracketScreen> {
     _future = _load();
   }
 
+  /// Pull-to-refresh: bust the cache and reload the bracket.
+  Future<void> _refresh() async {
+    ApiService.clearCache();
+    final future = _load();
+    setState(() => _future = future);
+    await future;
+  }
+
   Future<_BracketData> _load() async {
     final results = await Future.wait([
       ApiService.fetchLeagueDetails(widget.leagueId),
@@ -140,9 +148,14 @@ class _PlayoffBracketScreenState extends State<PlayoffBracketScreen> {
                           ),
                         );
                       }
-                      return PlayoffBracket(
-                        size: data.size,
-                        matchesByStage: data.matches,
+                      return RefreshIndicator(
+                        onRefresh: _refresh,
+                        color: const Color(0xFF00FFFF),
+                        backgroundColor: const Color(0xFF000033),
+                        child: PlayoffBracket(
+                          size: data.size,
+                          matchesByStage: data.matches,
+                        ),
                       );
                     },
                   ),

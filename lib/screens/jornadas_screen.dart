@@ -63,6 +63,22 @@ class _TelaJornadasState extends State<TelaJornadas> {
     super.dispose();
   }
 
+  /// Pull-to-refresh: bust the cache and re-fetch jornadas.
+  Future<void> _refresh() async {
+    ApiService.clearCache();
+    await _fetchJornadas();
+  }
+
+  /// Wraps scrollable page content in a themed [RefreshIndicator].
+  Widget _wrapRefresh(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      color: const Color(0xFF00FFFF),
+      backgroundColor: const Color(0xFF000033),
+      child: child,
+    );
+  }
+
   Future<void> _fetchJornadas() async {
     setState(() {
       _isLoading = true;
@@ -147,7 +163,8 @@ class _TelaJornadasState extends State<TelaJornadas> {
                             },
                             itemCount: _jornadas.length,
                             itemBuilder: (context, index) {
-                              return SingleChildScrollView(
+                              return _wrapRefresh(SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
                                 child: Column(
                                   children: [
                                     // ========== LEAGUE INFO HEADER ==========
@@ -286,7 +303,7 @@ class _TelaJornadasState extends State<TelaJornadas> {
                                   ),
                                 ],
                               ),
-                            );
+                            ));
                             },
                           ),
           ),
