@@ -367,10 +367,13 @@ class _PaginaDaLigaClassificaOState extends State<PaginaDaLigaClassificaO> {
             ),
           ),
 
-          // ========== HOME FAB ==========
+          // ========== HOME BUTTON ==========
+          // Left when only the playoff bracket is shown (nothing to cover),
+          // right when the leaderboard/stats are shown.
           Positioned(
-            left: 16,
-            bottom: _isPlayoffOnly ? 16 : (_hasStatsPage ? 83 : 55) + 16,
+            top: statusBarHeight + 8,
+            left: _isPlayoffOnly ? 12 : null,
+            right: _isPlayoffOnly ? null : 12,
             child: const HomeFab(),
           ),
         ],

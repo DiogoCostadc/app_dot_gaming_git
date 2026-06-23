@@ -363,11 +363,11 @@ class _TelaJornadasState extends State<TelaJornadas> {
             ),
           ),
 
-          // ========== HOME FAB ==========
-          const Positioned(
-            left: 16,
-            bottom: 83 + 16,
-            child: HomeFab(),
+          // ========== HOME BUTTON (top-left) ==========
+          Positioned(
+            top: statusBarHeight + 8,
+            left: 12,
+            child: const HomeFab(),
           ),
         ],
       ),

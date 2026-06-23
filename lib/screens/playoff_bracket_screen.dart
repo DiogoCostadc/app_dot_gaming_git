@@ -194,11 +194,11 @@ class _PlayoffBracketScreenState extends State<PlayoffBracketScreen> {
             ),
           ),
 
-          // ========== HOME FAB ==========
-          const Positioned(
-            left: 16,
-            bottom: bottomNavHeight + 16,
-            child: HomeFab(),
+          // ========== HOME BUTTON (top-left) ==========
+          Positioned(
+            top: statusBarHeight + 8,
+            left: 12,
+            child: const HomeFab(),
           ),
         ],
       ),
